@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>Soinnun sävelet sinifunktion jaksolliseen aaltomuotoon lineaarialgebran superpositioperiaattetta noudattaen</title>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .note { margin-bottom: 5px; }
+    .note input[type="range"] { width: 200px; }
+    .selected-notes { margin-top: 10px; }
+    #latex-box { white-space: pre-wrap; margin-top: 20px; background: #f0f0f0; padding: 10px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+
+<h3>Soinnun sävelet sinifunktion jaksolliseen aaltomuotoon lineaarialgebran superpositioperiaattetta noudattaen:</h3>
+
+<label for="A_a">Yleinen amplitudi A<sub>a</sub> (0–2): </label>
+<input type="range" id="A_a" min="0" max="2" step="0.01" value="1">
+<span id="A_a_val">1</span>
+
+<h2>Valitse sävelet:</h2>
+<select id="note-selector">
+  <option value="">Valitse sävel</option>
+</select>
+<button onclick="addNote()">Lisää sävel</button>
+
+<div class="selected-notes" id="selected-notes"></div>
+
+<h2>LaTeX-kaava:</h2>
+<div id="latex-box"></div>
+
+<script>
+  const noteNames = [
+    "A0","A#0","H0",
+    "C1","C#1","D1","D#1","E1","F1","F#1","G1","G#1",
+    "A1","A#1","H1",
+    "C2","C#2","D2","D#2","E2","F2","F#2","G2","G#2",
+    "A2","A#2","H2",
+    "C3","C#3","D3","D#3","E3","F3","F#3","G3","G#3",
+    "A3","A#3","H3",
+    "C4","C#4","D4","D#4","E4","F4","F#4","G4","G#4",
+    "A4","A#4","H4",
+    "C5","C#5","D5","D#5","E5","F5","F#5","G5","G#5",
+    "A5","A#5","H5",
+    "C6","C#6","D6","D#6","E6","F6","F#6","G6","G#6",
+    "A6","A#6","H6",
+    "C7","C#7","D7","D#7","E7","F7","F#7","G7","G#7",
+    "A7","A#7","H7",
+    "C8"
+  ];
+
+  const selectedNotes = [];
+  const A_n = {};
+
+  const noteSelector = document.getElementById("note-selector");
+  noteNames.forEach((note, i) => {
+    const option = document.createElement("option");
+    option.value = i - 48; // distance from A4 (index 48)
+    option.text = `${note} (n = ${i - 48})`;
+    noteSelector.appendChild(option);
+  });
+
+  document.getElementById("A_a").addEventListener("input", () => {
+    document.getElementById("A_a_val").innerText = document.getElementById("A_a").value;
+    updateLatex();
+  });
+
+  function addNote() {
+    const selector = document.getElementById("note-selector");
+    const value = selector.value;
+    if (value === "" || selectedNotes.includes(value)) return;
+
+    selectedNotes.push(value);
+    A_n[value] = 1;
+
+    const container = document.createElement("div");
+    container.className = "note";
+    container.id = `note_${value}`;
+    const noteIndex = parseInt(value) + 48; // haetaan takaisin alkuperäinen indeksi
+    const noteName = noteNames[noteIndex];
+    container.innerHTML = `
+      Sävel ${noteName} (n = ${value}), sävelen amplitudi: &nbsp;
+      <input type="range" min="0" max="2" step="0.01" value="1"
+        oninput="updateAn('${value}', this.value)">
+      <span id="A_n_val_${value}">1</span>
+      <button onclick="removeNote('${value}')">Poista</button>
+    `;
+
+    document.getElementById("selected-notes").appendChild(container);
+    updateLatex();
+  }
+
+  function removeNote(value) {
+    document.getElementById(`note_${value}`).remove();
+    const index = selectedNotes.indexOf(value);
+    if (index > -1) selectedNotes.splice(index, 1);
+    delete A_n[value];
+    updateLatex();
+  }
+
+  function updateAn(value, amp) {
+    A_n[value] = amp;
+    document.getElementById(`A_n_val_${value}`).innerText = amp;
+    updateLatex();
+  }
+
+  function updateLatex() {
+      const A_a = document.getElementById("A_a").value;
+      let parts = selectedNotes.map(n =>
+        `${A_n[n]}\\cdot\\sin\\left(2\\pi\\cdot 440\\cdot2^{\\frac{${n}}{12}}\\cdot x\\right)`
+      );
+      let latex = `\\[${A_a}\\cdot\\left(${parts.join(" + ")}\\right)\\]`;
+
+      document.getElementById("latex-box").innerText = latex;
+      MathJax.typesetPromise([document.getElementById("latex-box")]);
+  }
+
+
+</script>
+
+<p>Kopioi LaTeX: Napauta kaavaa oikealla korvalla -> Copy to clipboard -> TeX Commands
+
+</p>Perustuu kaavaan:</p>
+
+<p>  
+\(\displaystyle \text{Sointu}(x)=A_{\alpha }\cdot \sum _{i=0}^k\left(\frac{\sin \left(2\pi \cdot 440\cdot 2^{\frac{n_i}{12}}\cdot x\right)}{\frac{1}{\left(A_{n_i}\right)^2}\cdot A_{n_i}}\right)\)
+</p>
+
+<p>  
+\(\displaystyle =A_{\alpha }\cdot \left(A_{n_1}\cdot \sin \left(2\pi \cdot 440\cdot 2^{\frac{n_1}{12}}\cdot x\right)+A_{n_2}\cdot \sin \left(2\pi \cdot 440\cdot 2^{\frac{n_2}{12}}\cdot x\right)+A_{n_3}\cdot \sin \left(2\pi \cdot 440\cdot 2^{\frac{n_3}{12}}\cdot x\right)+...\right)\)
+</p>
+
+
+<p>  
+\(\displaystyle \text{Missä:}\)
+</p>
+<p>  
+\(\displaystyle \text{- }A4\ \text{sävelen taajuus on 440 Hz käytettäessä tasavireistä viritysjärjestelmää (12-TET; 12 tone equal temperament),}\)
+</p>
+<p>  
+\(\displaystyle \text{- }A\ \text{on aallon amplitudi,}\)
+</p>
+<p>  
+\(\displaystyle \text{- }{\alpha}\ \text{on soinnun aalto kokonaisuudessaan,}\)
+</p>
+<p>  
+\(\displaystyle \text{- }k\ \text{on soinnun sävelten kokonaislukumäärä,}\)
+</p>
+<p>  
+\(\displaystyle \text{- }n_i\ \text{on sävelen "matka" sävelestä A4 puolisävelaskelissa, missä}\ i=0{,}\ 1{,}...{,}\ k-1\)
+</p>
+
+
+</body>
+</html>

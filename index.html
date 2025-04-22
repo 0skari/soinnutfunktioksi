@@ -58,7 +58,7 @@
   const noteSelector = document.getElementById("note-selector");
   noteNames.forEach((note, i) => {
     const option = document.createElement("option");
-    option.value = i - 48; // distance from A4 (index 48)
+    option.value = i - 48;
     option.text = `${note} (n = ${i - 48})`;
     noteSelector.appendChild(option);
   });
@@ -79,7 +79,7 @@
     const container = document.createElement("div");
     container.className = "note";
     container.id = `note_${value}`;
-    const noteIndex = parseInt(value) + 48; // haetaan takaisin alkuperäinen indeksi
+    const noteIndex = parseInt(value) + 48;
     const noteName = noteNames[noteIndex];
     container.innerHTML = `
       Sävel ${noteName} (n = ${value}), sävelen amplitudi: &nbsp;

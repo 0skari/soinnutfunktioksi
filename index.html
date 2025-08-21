@@ -110,9 +110,9 @@
   function updateLatex() {
       const A_a = document.getElementById("A_a").value;
       let parts = selectedNotes.map(n =>
-        `\\tfrac{${A_n[n]}}{2}\\cdot\\sin\\left(2\\pi\\cdot 440\\cdot2^{\\frac{${n}}{12}}\\cdot x\\right)`
+        `\\frac{${A_n[n]}}{2}\\cdot\\sin\\left(2\\pi\\cdot 440\\cdot2^{\\frac{${n}}{12}}\\cdot x\\right)`
       );
-      let latex = `\\[\\tfrac{${A_a}}{2}\\cdot\\left(${parts.join(" + ")}\\right)\\]`;
+      let latex = `\\[\\frac{${A_a}}{2}\\cdot\\left(${parts.join(" + ")}\\right)\\]`;
 
       document.getElementById("latex-box").innerText = latex;
       MathJax.typesetPromise([document.getElementById("latex-box")]);
@@ -124,11 +124,11 @@
 </p>Perustuu kaavaan:</p>
 
 <p>  
-\(\displaystyle \text{Sointu}(x)=\tfrac{A_{\alpha }}{2}\cdot \sum _{i=0}^k\left(\frac{\sin \left(2\pi \cdot 440\cdot 2^{\frac{n_i}{12}}\cdot x\right)}{\left(\tfrac{A_{n_i}}{2}\right)^{-1}}\right)\)
+\(\displaystyle \text{Sointu}(x)=\frac{A_{\alpha }}{2}\cdot \sum _{i=0}^k\left(\frac{\sin \left(2\pi \cdot 440\cdot 2^{\frac{n_i}{12}}\cdot x\right)}{\left(\frac{A_{n_i}}{2}\right)^{-1}}\right)\)
 </p>
 
 <p>  
-\(\displaystyle => \tfrac{A_{\alpha }}{2}\cdot \left(\tfrac{A_{n_0}}{2}\cdot \sin \left(2\pi \cdot 440\cdot 2^{\frac{n_0}{12}}\cdot x\right)+\tfrac{A_{n_1}}{2}\cdot \sin \left(2\pi \cdot 440\cdot 2^{\frac{n_1}{12}}\cdot x\right)+...+\tfrac{A_{n_k}}{2}\cdot \sin \left(2\pi \cdot 440\cdot 2^{\frac{n_k}{12}}\cdot x\right)\right)\)
+\(\displaystyle => \frac{A_{\alpha }}{2}\cdot \left(\frac{A_{n_0}}{2}\cdot \sin \left(2\pi \cdot 440\cdot 2^{\frac{n_0}{12}}\cdot x\right)+\frac{A_{n_1}}{2}\cdot \sin \left(2\pi \cdot 440\cdot 2^{\frac{n_1}{12}}\cdot x\right)+...+\frac{A_{n_k}}{2}\cdot \sin \left(2\pi \cdot 440\cdot 2^{\frac{n_k}{12}}\cdot x\right)\right)\)
 </p>
 
 

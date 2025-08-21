@@ -121,15 +121,39 @@
 
 <p><span style="color: #000000;">Kopioi LaTeX: Napauta kaavaa oikealla korvalla -&gt; Copy to clipboard -&gt; TeX Commands. Muista poistaa koodin edest&auml; "\displaystyle ", mik&auml;li aiot k&auml;ytt&auml;&auml; kaavaa <a style="color: #000000;" title="Kaavaeditori" href="https://kaava.mafynetti.fi/" target="_blank">kaavaeditorissa</a>.</span></p>
 
-<p>Perustuu kaavaan:</p>
+</p>Perustuu kaavaan:</p>
 
 <p>  
-\(\displaystyle \text{Sointu}(x)=A_{\alpha }\cdot \sum _{i=0}^k\left(\frac{\sin \left(2\pi \cdot 440\cdot 2^{\frac{n_i}{12}}\cdot x\right)}{\left(A_{n_i}\right)^{-1}}\right)\)
+\(\displaystyle \text{Sointu}(x)=\frac{A_{\alpha }}{2}\cdot \sum _{i=0}^k\left(\frac{1}{2}\cdot A_{n_i}\cdot\sin \left(2\pi \cdot 440\cdot 2^{\frac{n_i}{12}}\cdot x\right)\right)\)
 </p>
 
 <p>  
-\(\displaystyle => \tfrac{A_{\alpha}}{2}\cdot \left(\tfrac{A_{n_0}}{2}\cdot \sin \left(2\pi \cdot 440\cdot 2^{\frac{n_0}{12}}\cdot x\right)+\tfrac{A_{n_1}}{2}\cdot \sin \left(2\pi \cdot 440\cdot 2^{\frac{n_1}{12}}\cdot x\right)+...+\tfrac{A_{n_k}}{2}\cdot \sin \left(2\pi \cdot 440\cdot 2^{\frac{n_k}{12}}\cdot x\right)\right)\)
+\(\displaystyle => \frac{A_{\alpha}}{2}\cdot \left(\frac{A_{n_0}}{2}\cdot \sin \left(2\pi \cdot 440\cdot 2^{\frac{n_0}{12}}\cdot x\right)+\frac{A_{n_1}}{2}\cdot \sin \left(2\pi \cdot 440\cdot 2^{\frac{n_1}{12}}\cdot x\right)+...+\frac{A_{n_k}}{2}\cdot \sin \left(2\pi \cdot 440\cdot 2^{\frac{n_k}{12}}\cdot x\right)\right)\)
 </p>
+
+
+<p>  
+\(\displaystyle \text{Missä:}\)
+</p>
+<p>  
+\(\displaystyle \text{- }A4\ \text{-sävelen taajuus on 440 Hz käytettäessä tasavireistä viritysjärjestelmää (12-TET; 12 tone equal temperament),}\)
+</p>
+<p>  
+\(\displaystyle \text{- }A\ \text{on aallon amplitudi,}\)
+</p>
+<p>  
+\(\displaystyle \text{- }{\alpha}\ \text{on soinnun aalto kokonaisuudessaan,}\)
+</p>
+<p>  
+\(\displaystyle \text{- }k\ \text{on soinnun sävelten kokonaislukumäärä,}\)
+</p>
+<p>  
+\(\displaystyle \text{- }n_i\ \text{on sävelen "matka" sävelestä A4 puolisävelaskelissa, missä}\ i=0{,}\ 1{,}...{,}\ k-1,\)
+</p>
+<p>  
+\(\displaystyle \text{- }x\ \text{on aika sekunteina.}\)
+</p>
+
 
 </body>
 </html>

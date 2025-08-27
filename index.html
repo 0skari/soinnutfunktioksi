@@ -124,12 +124,18 @@
 </p>Perustuu kaavaan:</p>
 
 <p>  
+\(\displaystyle f_i = A4\ \cdot \sqrt[12]{2}^{\,n_i}\)
+</p>
+
+<p>  
 \(\displaystyle \text{Sointu}(x)=\frac{A_{\alpha }}{2}\cdot \sum _{i=0}^k\left(\frac{\sin \left(2\pi \cdot 440\cdot 2^{\frac{n_i}{12}}\cdot x\right)}{\left(\frac{A_{n_i}}{2}\right)^{-1}}\right)\)
 </p>
 
 <p>  
 \(\displaystyle => \frac{A_{\alpha }}{2}\cdot \left(\frac{A_{n_0}}{2}\cdot \sin \left(2\pi \cdot 440\cdot 2^{\frac{n_0}{12}}\cdot x\right)+\frac{A_{n_1}}{2}\cdot \sin \left(2\pi \cdot 440\cdot 2^{\frac{n_1}{12}}\cdot x\right)+...+\frac{A_{n_k}}{2}\cdot \sin \left(2\pi \cdot 440\cdot 2^{\frac{n_k}{12}}\cdot x\right)\right)\)
 </p>
+
+
 
 
 <p>  
@@ -148,12 +154,318 @@
 \(\displaystyle \text{- }k\ \text{on soinnun sävelten kokonaislukumäärä,}\)
 </p>
 <p>  
-\(\displaystyle \text{- }n_i\ \text{on sävelen "matka" sävelestä A4 puolisävelaskelissa, missä}\ i=0{,}\ 1{,}...{,}\ k-1,\)
+\(\displaystyle \text{- }n_i\ \text{on sävelen}\ i \text{ "matka" sävelestä A4 puolisävelaskelissa, missä}\ i=0{,}\ 1{,}...{,}\ k-1,\)
+</p>
+<p>  
+\(\displaystyle \text{- }f_i\ \text{on sävelen}\ i \text{ taajuus, missä}\ i=0{,}\ 1{,}...{,}\ k-1,\)
 </p>
 <p>  
 \(\displaystyle \text{- }x\ \text{on aika sekunteina.}\)
 </p>
 
+
+</body>
+</html>
+
+
+----------------------------------
+
+
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LaTeX yhtälöstä ääni, kuvaaja ja soitettava aaltomuoto</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjs@11.8.0/lib/browser/math.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+  body { font-family: Arial, sans-serif; padding: 1em; background: #fafafa; }
+  textarea { width: 100%; height: 6em; font-family: monospace; font-size: 1.1em; }
+  canvas { border: 1px solid #333; width: 100%; height: 200px; background: white; display: block; margin-top: 1em; }
+  button { padding: 0.5em 1em; margin-top: 1em; font-size: 1em; cursor: pointer; }
+  #outputLatex { font-size: 1.2em; margin-top: 1em; min-height: 1.5em; }
+  #log { color: red; margin-top: 1em; min-height: 1.2em; font-family: monospace; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+
+<h1>LaTeX yhtälöstä ääni, kuvaaja ja soitettava aaltomuoto</h1>
+
+<p>Liitä LaTeX-muotoinen yhtälö, joka sisältää muuttujan <code>x</code> (esim. <code>\sin \left(2\pi \cdot 440\cdot 2^{\frac{0}{12}}\cdot x\right)</code>)</p>
+<textarea id="latexInput" placeholder="Kopioi LaTeX: Napauta kaavaa oikealla korvalla -> Copy to clipboard -> TeX Commands JA liitä LaTeX-yhtälö tähän ilman \displaystyle-kohtaa."></textarea>
+
+<button id="processBtn">Sievennä, piirrä ja soita</button>
+
+<div id="outputLatex"></div>
+<div id="log"></div>
+
+<canvas id="waveCanvas" width="800" height="200"></canvas>
+<canvas id="visualizerCanvas" width="800" height="200"></canvas>
+
+<script>
+  const latexInput = document.getElementById('latexInput');
+  const outputLatex = document.getElementById('outputLatex');
+  const log = document.getElementById('log');
+  const waveCanvas = document.getElementById('waveCanvas');
+  const waveCtx = waveCanvas.getContext('2d');
+  const visualizerCanvas = document.getElementById('visualizerCanvas');
+  const visualizerCtx = visualizerCanvas.getContext('2d');
+  const btn = document.getElementById('processBtn');
+
+  let audioCtx = null;
+  let analyser = null;
+  let source = null;
+  let animationId = null;
+
+  function logMsg(msg) {
+    log.textContent = msg;
+    console.log(msg);
+  }
+
+  function latexToMathjs(latex) {
+    let expr = latex;
+
+    // Korvaa \frac{a}{b} muotoon (a/b)
+    while (expr.match(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/)) {
+      expr = expr.replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, '($1/$2)');
+    }
+
+    // Korvaa potenssit: a^{b} -> a^(b)
+    expr = expr.replace(/(\S)\s*\^\s*\{([^{}]+)\}/g, '$1^($2)');
+
+    // Poista LaTeXin \cdot, \left, \right
+    expr = expr.replace(/\\cdot/g, '*');
+    expr = expr.replace(/\\left/g, '');
+    expr = expr.replace(/\\right/g, '');
+
+    // Korvaa trigonometriset funktiot
+    expr = expr.replace(/\\sin/g, 'sin');
+    expr = expr.replace(/\\cos/g, 'cos');
+    expr = expr.replace(/\\tan/g, 'tan');
+
+    // Korvaa pi
+    expr = expr.replace(/\\pi/g, 'pi');
+
+    return expr;
+  }
+
+  // Pyöristää numerot 3 desimaalin tarkkuuteen sievennetystä lausekkeesta
+  function roundConstants(node, decimals = 3) {
+    return node.transform(function (node, path, parent) {
+      if (node.isConstantNode) {
+        const val = Number(node.value);
+        if (!isNaN(val)) {
+          return new math.ConstantNode(parseFloat(val.toFixed(decimals)));
+        }
+      }
+      return node;
+    });
+  }
+
+  function getScaledSamples(f, sampleCount, sampleRate) {
+    const samples = [];
+    for (let i = 0; i < sampleCount; i++) {
+      const t = i / sampleRate;
+      let v;
+      try {
+        v = f.evaluate({x: t});
+      } catch (e) {
+        v = 0;
+      }
+      if (!isFinite(v)) v = 0;
+      samples.push(v);
+    }
+    // Etsi maksimi amplitudi (absoluuttinen arvo)
+    const maxAmp = Math.max(...samples.map(s => Math.abs(s))) || 1;
+    // Skaalauskerroin, jotta max amplitude on 80% canvasin korkeudesta (korkeus on 1.0 koska samplet ovat +-1)
+    const scale = 0.8 / maxAmp;
+
+    // Palautetaan skaalatut arvot ja skaalauskerroin
+    const scaledSamples = samples.map(s => s * scale);
+    return {scaledSamples, scale};
+  }
+
+  function drawWave(f) {
+    const width = waveCanvas.width;
+    const height = waveCanvas.height;
+    waveCtx.clearRect(0, 0, width, height);
+    waveCtx.beginPath();
+    waveCtx.strokeStyle = 'blue';
+
+    const samplesCount = width;
+    const sampleRate = 100; // sopiva sample rate kuvalle
+    const {scaledSamples} = getScaledSamples(f, samplesCount, sampleRate);
+
+    for (let i = 0; i < samplesCount; i++) {
+      const y = height / 2 - scaledSamples[i] * (height / 2);
+      if (i === 0) waveCtx.moveTo(i, y);
+      else waveCtx.lineTo(i, y);
+    }
+    waveCtx.stroke();
+  }
+
+  function playWave(f) {
+    logMsg("Ladataan ääntä...");
+    if (!window.AudioContext) {
+      alert("AudioContext ei ole tuettu tässä selaimessa.");
+      return;
+    }
+
+    if (!audioCtx) {
+      audioCtx = new AudioContext();
+    }
+
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume().then(() => {
+        logMsg("AudioContext aktivoitu.");
+        startPlay();
+      });
+    } else {
+      startPlay();
+    }
+
+    function startPlay() {
+      if (source) {
+        try {
+          source.stop();
+          source.disconnect();
+        } catch {}
+      }
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+
+      const sampleRate = audioCtx.sampleRate || 44100;
+      const duration = 2;  // 1 sekunti
+      const frameCount = sampleRate * duration;
+
+      // Lasketaan kaikki sample-arvot ja skaalataan
+      const {scaledSamples, scale} = getScaledSamples(f, frameCount, sampleRate);
+
+      const buffer = audioCtx.createBuffer(1, frameCount, sampleRate);
+      const data = buffer.getChannelData(0);
+
+      for (let i = 0; i < frameCount; i++) {
+        let v = scaledSamples[i];
+        if (v > 1) v = 1;
+        else if (v < -1) v = -1;
+        data[i] = v;
+      }
+
+      source = audioCtx.createBufferSource();
+      source.buffer = buffer;
+
+      source.loop = true;  // Loopataan ääni
+
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 2048;
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
+
+      source.start();
+      logMsg(`Ääni käynnistetty loopilla (skaalauskerroin ${scale.toFixed(3)}).`);
+
+      visualize();
+    }
+  }
+
+  function visualize() {
+    const width = visualizerCanvas.width;
+    const height = visualizerCanvas.height;
+    analyser.fftSize = 2048;
+    const bufferLength = analyser.fftSize;
+    const dataArray = new Uint8Array(bufferLength);
+
+    function draw() {
+      animationId = requestAnimationFrame(draw);
+
+      analyser.getByteTimeDomainData(dataArray);
+
+      visualizerCtx.fillStyle = 'white';
+      visualizerCtx.fillRect(0, 0, width, height);
+
+      visualizerCtx.lineWidth = 2;
+      visualizerCtx.strokeStyle = 'green';
+      visualizerCtx.beginPath();
+
+      const sliceWidth = width * 1.0 / bufferLength;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const v = dataArray[i] / 128.0; // 0..2
+        const y = v * height / 2;
+
+        if (i === 0) {
+          visualizerCtx.moveTo(x, y);
+        } else {
+          visualizerCtx.lineTo(x, y);
+        }
+
+        x += sliceWidth;
+      }
+
+      visualizerCtx.lineTo(width, height / 2);
+      visualizerCtx.stroke();
+    }
+
+    draw();
+  }
+
+  btn.addEventListener('click', async () => {
+    logMsg(""); // tyhjennä logi
+    waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+    visualizerCtx.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
+
+    const latex = latexInput.value.trim();
+    if (!latex) {
+      alert("Syötä LaTeX-muotoinen yhtälö!");
+      return;
+    }
+
+    const mathjsExpr = latexToMathjs(latex);
+    console.log("MathJS expr:", mathjsExpr);
+
+    let parsed;
+    try {
+      parsed = math.parse(mathjsExpr);
+    } catch (e) {
+      alert("Virhe lausekkeessa: " + e.message);
+      console.error(e);
+      return;
+    }
+
+    let simplified;
+    try {
+      simplified = math.simplify(parsed);
+      simplified = roundConstants(simplified, 3);
+    } catch(e) {
+      alert("Virhe sievennyksessä: " + e.message);
+      console.error(e);
+      return;
+    }
+
+    outputLatex.innerHTML = 'Sievennetty lauseke: $$' + simplified.toTex() + '$$';
+    await MathJax.typesetPromise();
+
+    // Testataan evaluointi yhdellä arvolla
+    try {
+      let testVal = simplified.evaluate({x: 0.01});
+      console.log("Testi evaluate x=0.01:", testVal);
+      if (!isFinite(testVal)) {
+        throw new Error("Evaluointi tuotti ei-numeraalisen arvon.");
+      }
+    } catch(e) {
+      alert("Lausekkeen evaluointi epäonnistui: " + e.message);
+      console.error(e);
+      return;
+    }
+
+    drawWave(simplified);
+
+    playWave(simplified);
+  });
+</script>
 
 </body>
 </html>
